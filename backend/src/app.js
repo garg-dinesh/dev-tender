@@ -7,6 +7,7 @@ const app = express();
 
 app.use(express.json ())
 
+// Feed API - get all the users from the database
 app.get('/feed', async (req, res) => {
     try {
         const users = await User.find({});
@@ -16,6 +17,7 @@ app.get('/feed', async (req, res) => {
     }
 })
 
+// Get user by email
 app.get('/user', async (req, res) => {
     const userEmail = req.body.emailId;
     try {
@@ -32,6 +34,31 @@ app.get('/user', async (req, res) => {
             return res.status(404).send('User not found..')
         }
         return res.send(user)
+    } catch(err) {
+        return res.status(400).send('Something went wrong..')
+    }
+});
+
+// Delete a user from database
+app.delete('/user', async (req, res) => {
+    const userId = req.body.userId;
+
+    try {
+        const user = await User.findByIdAndDelete(userId);
+        return res.send('User deleted successfully..')
+    } catch(err) {
+        return res.status(400).send('Something went wrong..')
+    }
+})
+
+// Update a user
+app.patch('/user', async (req,res) => {
+    const userId = req.body.userId;
+    const data = req.body;
+
+    try {
+        const user = await User.findByIdAndUpdate(userId, data);
+        return res.send('User updated successfully..')
     } catch(err) {
         return res.status(400).send('Something went wrong..')
     }
