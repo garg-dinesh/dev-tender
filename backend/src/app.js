@@ -3,11 +3,14 @@ const connectDB = require('./config/database')
 
 const User = require('./models/user');
 const {validateSignUpData} = require('./utils/validation')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const cokkieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
 app.use(express.json ())
+app.use(cokkieParser());
 
 // Feed API - get all the users from the database
 app.get('/feed', async (req, res) => {
@@ -116,9 +119,35 @@ app.post("/login", async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (isPasswordValid) {
+            const token = await jwt.sign({_id: user._id}, "DEV@TENDER$");
+
+            res.cookie("token", token);
             return res.send("Login Successfully!")
         } else {
             throw new Error("Invalid credentials!")
+        }
+    } catch(err) {
+        return res.status(400).send("Error: " + err.message)
+    }
+});
+
+// GET: Profile
+app.get("/profile", async (req, res) => {
+    try {
+        const cookies = req.cookies;
+        const {token} = cookies;
+
+        if (!token) {
+            throw new Error("Please login required!")
+        }
+        const decodeMessage = await jwt.verify(token, "DEV@TENDER$");
+        const {_id} = decodeMessage;
+        const user = await User.findById(_id);
+
+        if (!user) {
+            throw new Error("user does not exist!")
+        } else {
+            return res.send(user)
         }
     } catch(err) {
         return res.status(400).send("Error: " + err.message)
