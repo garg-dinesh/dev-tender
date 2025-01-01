@@ -7,7 +7,7 @@ const requestRouter = express.Router();
 
 requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
     try {
-        const fromUserId = re.user._id;
+        const fromUserId = req.user._id;
         const toUserId = req.params.toUserId;
         const status = req.params.status;
 
@@ -47,7 +47,9 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
             data,
         })
     } catch(err) {
-        return res.status(400).send("Error: " + err.message)
+        return res.status(400).json({
+            message: "Error: " + err.message
+        })
     }
 })
 
