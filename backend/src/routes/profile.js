@@ -36,4 +36,26 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     }
 })
 
+profileRouter.patch("/profile/password", userAuth, async (req, res) => {
+    try {
+        const {oldPassword, newPassword} = req.body;
+        const user = req.user;
+
+        const isPasswordValid = await user.validatePassword(oldPassword);
+
+        if (!isPasswordValid) {
+            throw new Error("Invalid Credentails!")
+        }
+
+        const passwordHash = await user.getPasswordHash(newPassword);
+
+        user.password = passwordHash;
+        await user.save();
+
+        return res.json({message: "Password updated successfully!"})
+    } catch(err) {
+        res.status(400).send("Error: " + err.message)
+    }
+})
+
 module.exports = profileRouter;
